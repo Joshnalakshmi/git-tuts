@@ -1,0 +1,132 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+// MenuItem class to represent each menu item in the hierarchy
+class MenuItem {
+public:
+    string name;                    // Name of the menu item
+    vector<MenuItem*> subMenus;      // A vector to hold submenus under this menu
+
+    // Constructor to initialize the menu item with a name
+    MenuItem(string n) : name(n) {}
+
+    // Method to add a submenu to this menu item
+    void addSubMenu(M                      enuItem* submenu) {
+        subMenus.push_back(submenu);
+    }
+
+    // Method to display the current menu's options
+    void displayMenu() {
+        cout << "\n--- " << name << " ---\n";
+        for (size_t i = 0; i < subMenus.size(); ++i) {
+            cout << i + 1 << ". " << subMenus[i]->name << endl;
+        }
+        cout << "0. Back\n"; // Option to go back to the parent menu
+    }
+};
+
+// MenuNavigator class to manage navigation through the menu system
+class MenuNavigator {
+private:
+    MenuItem* currentMenu; // Pointer to the current menu
+    MenuItem* previousMenu; // Pointer to the previous menu for "back" functionality
+
+public:
+    // Constructor that initializes the navigator with the root menu
+    MenuNavigator(MenuItem* rootMenu) : currentMenu(rootMenu), previousMenu(nullptr) {}
+
+    // Method to start navigating through the menu system
+    void navigate() {
+        int choice;
+        
+        while (true) {
+            // Display the current menu
+            currentMenu->displayMenu();
+            cout << "\nEnter your choice (1 to go down, 2 to go up, 3 to enter): ";
+            cin >> choice;
+
+            if (choice == 0) {
+                // If the user chooses '0', go back to the parent menu
+                goBack();
+            }
+            else if (choice == 1) {
+                // If the user chooses '1', navigate down (to the first submenu)
+                if (!currentMenu->subMenus.empty()) {
+                    currentMenu = currentMenu->subMenus[0];
+                } else {
+                    cout << "No submenus available.\n";
+                }
+            }
+            else if (choice == 2) {
+                // If the user chooses '2', go back to the previous menu
+                goBack();
+            }
+            else if (choice == 3) {
+                // If the user chooses '3', enter the selected submenu
+                enterMenu();
+            }
+            else {
+                cout << "Invalid choice. Please try again.\n";
+            }
+        }
+    }
+
+private:
+    // Go back to the previous menu (parent)
+    void goBack() {
+        if (previousMenu != nullptr) {
+            currentMenu = previousMenu;
+            previousMenu = nullptr; // Reset previous menu after going back
+        } else {
+            cout << "You are already at the root menu.\n";
+        }
+    }
+
+    // Enter a submenu (select a specific submenu)
+    void enterMenu() {
+        int choice;
+        cout << "\nEnter the number of the submenu to enter: ";
+        cin >> choice;
+
+        if (choice > 0 && choice <= currentMenu->subMenus.size()) {
+            previousMenu = currentMenu; // Save the current menu before moving down
+            currentMenu = currentMenu->subMenus[choice - 1]; // Move to the selected submenu
+        } else {
+            cout << "Invalid submenu choice. Please try again.\n";
+        }
+    }
+};
+
+// Main function to set up the menu hierarchy and initiate navigation
+int main() {
+    // Creating the root menu and submenus
+    MenuItem mainMenu("Main Menu");
+    MenuItem settings("Settings");
+    MenuItem displaySettings("Display Settings");
+    MenuItem audioSettings("Audio Settings");
+    MenuItem media("Media");
+    MenuItem radio("Radio");
+    MenuItem bluetoothAudio("Bluetooth Audio");
+
+    // Setting up the menu hierarchy
+    mainMenu.addSubMenu(&settings);
+    mainMenu.addSubMenu(&media);
+
+    settings.addSubMenu(&displaySettings);
+    settings.addSubMenu(&audioSettings);
+
+    media.addSubMenu(&radio);
+    media.addSubMenu(&bluetoothAudio);
+
+    // Initialize the MenuNavigator with the main menu
+    MenuNavigator navigator(&mainMenu);
+
+    // Start navigating through the menu system
+    navigator.navigate();
+
+    return 0;
+}
+
